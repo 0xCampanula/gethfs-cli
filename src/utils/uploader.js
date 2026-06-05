@@ -63,9 +63,9 @@ class Uploader {
         if (this.#uploadType === UploadType.Blob) {
             return Math.ceil(fileSize / OP_BLOB_DATA_SIZE);
         } else {
-            if (fileSize > 24 * 1024 - 326) {
-                // Data need to be sliced if file > 24K
-                return Math.ceil(fileSize / (24 * 1024 - 326));
+            if (fileSize > 32 * 1024 - 326) {
+                // Data need to be sliced if file > 32KB
+                return Math.ceil(fileSize / (32 * 1024 - 326));
             }
             return 1;
         }
