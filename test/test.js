@@ -2,7 +2,6 @@ const { exec, spawn } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
-const { UploadType } = require("ethstorage-sdk");
 
 const dotenv = require("dotenv")
 dotenv.config({ path: path.resolve(__dirname, "../.env") });
@@ -123,8 +122,8 @@ const setDefaultFile = async (address, chainId) => {
     return await testCommandSpawn('node', args);
 };
 
-const uploadFile = async (address, chainId, tempFilePath, uploadType) => {
-    const args = ['../cli.js', 'upload', '-p', privateKey, '-a', address, '-f', tempFilePath, '-c', chainId, '-t', uploadType];
+const uploadFile = async (address, chainId, tempFilePath) => {
+    const args = ['../cli.js', 'upload', '-p', privateKey, '-a', address, '-f', tempFilePath, '-c', chainId];
     return await testCommandSpawn('node', args);
 };
 
@@ -143,44 +142,23 @@ const runTests = async () => {
 
     const qkcChainId = 11155111;
 
-    // blob
-    console.log("Running tests for Blob...");
-    let address = await createContract(qkcChainId);
-    await setDefaultFile(address, qkcChainId);
-
-    await uploadFile(address, qkcChainId, largeFile, UploadType.Blob); // upload large file
-    await uploadFile(address, qkcChainId, largeFile, UploadType.Blob); // upload again
-
-    await uploadFile(address, qkcChainId, folderPath, UploadType.Blob); // upload files
-    await uploadFile(address, qkcChainId, folderPath, UploadType.Blob); // upload files again
-
-    const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-    await sleep(60000);
-
-    // download and check
-    let largeFileHash = await getFileHash(largeFile);
-    deleteFile(largeFile);
-    await downloadFile(address, qkcChainId, largeFileName);
-    let downloadFileHash = await getFileHash(largeFile);
-    console.log(`\n Blob File integrity check: `, largeFileHash === downloadFileHash);
-
-    // clear
-    deleteFile(largeFile);
-    deleteFolder(folderPath);
-
+    let address;
+    let largeFileHash;
+    let downloadFileHash;
 
     // calldata
-    console.log("\n\n\nRunning tests for Calldata...");
+    console.log("Running tests for Calldata...");
     createLargeFile(0.5, largeFile); // 2.5MB
     createFiles(5, folderPath); // 5 files
 
     address = await createContract(qkcChainId);
+    await setDefaultFile(address, qkcChainId);
 
-    await uploadFile(address, qkcChainId, largeFile, UploadType.Calldata); // upload large file
-    await uploadFile(address, qkcChainId, largeFile, UploadType.Calldata); // upload again
+    await uploadFile(address, qkcChainId, largeFile); // upload large file
+    await uploadFile(address, qkcChainId, largeFile); // upload again
 
-    await uploadFile(address, qkcChainId, folderPath, UploadType.Calldata);
-    await uploadFile(address, qkcChainId, folderPath, UploadType.Calldata);
+    await uploadFile(address, qkcChainId, folderPath);
+    await uploadFile(address, qkcChainId, folderPath);
 
     largeFileHash = await getFileHash(largeFile);
     deleteFile(largeFile);

@@ -2,18 +2,13 @@ const fs = require('fs');
 const path = require('path');
 const ora = require("ora");
 const readline = require('readline');
-const { FlatDirectory, UploadType } = require("ethstorage-sdk");
+const { FlatDirectory, MAX_CHUNKS, DEFAULT_MAX_CHUNK_SIZE_KB } = require("calldatauploader-sdk");
 const { ethers } = require("ethers");
 const {
   PROVIDER_URLS,
-  ETH_STORAGE_RPC,
   ETHEREUM_CHAIN_ID,
-  TYPE_CALLDATA,
-  TYPE_BLOB,
   QUARKCHAIN_L2_DELTA_CHAIN_ID,
   QUARKCHAIN_L2_MAINNET_CHAIN_ID,
-  SEPOLIA_CHAIN_ID,
-  DEFAULT_THREAD_POOL_SIZE_ONE,
   DEFAULT_THREAD_POOL_SIZE_LOW,
   DEFAULT_THREAD_POOL_SIZE_HIGH
 } = require('./params');
@@ -146,9 +141,7 @@ const download = async (domain, fileName, rpc, chainId) => {
   fs.existsSync(path.dirname(savePath)) || fs.mkdirSync(path.dirname(savePath));
 
   // replace rpc to eth storage
-  const esRpc = ETH_STORAGE_RPC[handler.chainId];
-  const ethStorageRpc = esRpc || handler.providerUrl;
-  const fd = await createSDK(handler.providerUrl, ethers.hexlify(ethers.randomBytes(32)), handler.address, ethStorageRpc);
+  const fd = await createSDK(handler.providerUrl, ethers.hexlify(ethers.randomBytes(32)), handler.address, handler.providerUrl);
   if (!fd) {
     return;
   }
@@ -172,7 +165,7 @@ const download = async (domain, fileName, rpc, chainId) => {
   }
 }
 
-const estimateAndUpload = async (key, domain, path, type, rpc, chainId, gasIncPct, threadPoolSize, estimateGas) => {
+const estimateAndUpload = async (key, domain, path, rpc, chainId, maxFeePerGas, maxPriorityFeePerGas, gasPrice, threadPoolSize, estimateGas, chunkSize, maxChunkCount) => {
   if (!isPrivateKey(key)) {
     Logger.error("Invalid private key.");
     return;
@@ -189,42 +182,70 @@ const estimateAndUpload = async (key, domain, path, type, rpc, chainId, gasIncPc
     Logger.error("File or folder does not exist.");
     return;
   }
-  if (type) {
-    const numericType = Number(type);
-    if (numericType === UploadType.Calldata || type === TYPE_CALLDATA) {
-      type = UploadType.Calldata;
-    } else if (numericType === UploadType.Blob || type === TYPE_BLOB) {
-      type = UploadType.Blob;
-    } else {
-      Logger.error("Invalid upload type.");
-      return;
+  // Custom gas fees, in wei: EIP-1559 fields for EIP-1559 chains, gasPrice for legacy
+  // chains (e.g. BNB Chain). Integers only; unset values fall back to chain defaults.
+  const gasFee = {};
+  const parseWei = (name, value) => {
+    if (value === undefined || value === null || value === '') return undefined;
+    if (!/^\d+$/.test(String(value))) {
+      Logger.error(`Invalid ${name}. Please provide a positive integer in wei.`);
+      return null;
     }
+    const wei = BigInt(value);
+    if (wei <= 0n) {
+      Logger.error(`Invalid ${name}. Please provide a positive integer in wei.`);
+      return null;
+    }
+    return wei;
+  };
+  if (maxFeePerGas !== undefined) {
+    const v = parseWei('maxFeePerGas', maxFeePerGas);
+    if (v === null) return;
+    gasFee.maxFeePerGas = v;
   }
-  if (gasIncPct) {
-    gasIncPct = Number(gasIncPct);
-    if (isNaN(gasIncPct)) gasIncPct = 0;
+  if (maxPriorityFeePerGas !== undefined) {
+    const v = parseWei('maxPriorityFeePerGas', maxPriorityFeePerGas);
+    if (v === null) return;
+    gasFee.maxPriorityFeePerGas = v;
+  }
+  if (gasPrice !== undefined) {
+    const v = parseWei('gasPrice', gasPrice);
+    if (v === null) return;
+    gasFee.gasPrice = v;
+  }
+  chunkSize = chunkSize ? Number(chunkSize) : DEFAULT_MAX_CHUNK_SIZE_KB;
+  if (!Number.isInteger(chunkSize) || chunkSize <= 0) {
+    Logger.error("Invalid chunk size. Please provide a positive integer, in KB.");
+    return;
+  }
+  maxChunkCount = maxChunkCount ? Number(maxChunkCount) : MAX_CHUNKS;
+  if (!Number.isInteger(maxChunkCount) || maxChunkCount <= 0) {
+    Logger.error("Invalid max chunk count. Please provide a positive integer.");
+    return;
   }
 
   const handler = await getHandler(domain, rpc, chainId, false);
   if (!handler) return;
 
-  // Batch processing limit
-  let batchFetchLimit, fileUploadLimit;
+  // Batch processing limit (chunk transactions are always sent strictly one at a time)
+  let batchFetchLimit;
   if (threadPoolSize) {
-    batchFetchLimit = fileUploadLimit = Number(threadPoolSize);
+    batchFetchLimit = Number(threadPoolSize);
   } else if (handler.chainId === QUARKCHAIN_L2_DELTA_CHAIN_ID || handler.chainId === QUARKCHAIN_L2_MAINNET_CHAIN_ID) {
-    batchFetchLimit = fileUploadLimit = DEFAULT_THREAD_POOL_SIZE_HIGH;
-  } else if (handler.chainId === ETHEREUM_CHAIN_ID || handler.chainId === SEPOLIA_CHAIN_ID) {
-    batchFetchLimit = DEFAULT_THREAD_POOL_SIZE_LOW;
-    fileUploadLimit = DEFAULT_THREAD_POOL_SIZE_ONE;
+    batchFetchLimit = DEFAULT_THREAD_POOL_SIZE_HIGH;
   } else {
-    batchFetchLimit = fileUploadLimit = DEFAULT_THREAD_POOL_SIZE_LOW;
+    batchFetchLimit = DEFAULT_THREAD_POOL_SIZE_LOW;
   }
-  Logger.info(`Thread pool size: ${fileUploadLimit}`);
+  Logger.info(`Thread pool size: ${batchFetchLimit}`);
+  Logger.info(`Chunk size: ${chunkSize} KB`);
+  Logger.info(`Max chunk count: ${maxChunkCount}`);
+  if (gasFee.maxFeePerGas !== undefined) Logger.info(`Max fee per gas: ${gasFee.maxFeePerGas} wei`);
+  if (gasFee.maxPriorityFeePerGas !== undefined) Logger.info(`Max priority fee per gas: ${gasFee.maxPriorityFeePerGas} wei`);
+  if (gasFee.gasPrice !== undefined) Logger.info(`Gas price: ${gasFee.gasPrice} wei`);
   Logger.log('');
 
   // query total cost
-  const uploader = await Uploader.create(key, handler.providerUrl, handler.address, type);
+  const uploader = await Uploader.create(key, handler.providerUrl, handler.address, chunkSize, maxChunkCount);
   if (!uploader) {
     process.exit(1);
     return;
@@ -232,12 +253,12 @@ const estimateAndUpload = async (key, domain, path, type, rpc, chainId, gasIncPc
 
   if (estimateGas) {
     // get cost
-    await estimateCost(uploader, path, gasIncPct, batchFetchLimit);
+    await estimateCost(uploader, path, gasFee, batchFetchLimit);
     if (!(await answer("Continue?"))) return await safeClose(uploader);
   }
 
   // upload
-  await upload(uploader, path, gasIncPct, batchFetchLimit, fileUploadLimit);
+  await upload(uploader, path, gasFee, batchFetchLimit);
   process.exit(0);
 }
 // **** external function ****
@@ -258,17 +279,17 @@ const answer = async (text) => {
   });
 }
 
-const estimateCost = async (uploader, path, gasIncPct, threadPoolSize) => {
+const estimateCost = async (uploader, path, gasFee, threadPoolSize) => {
   const spin = ora('Start estimating cost').start();
   try {
-    const cost = await uploader.estimateCost(spin, path, gasIncPct, threadPoolSize);
+    const cost = await uploader.estimateCost(spin, path, gasFee, threadPoolSize);
     spin.succeed('Estimating cost progress: 100%');
 
     Logger.log('');
     Logger.info(`Total files: ${error(cost.totalFileCount.toString())}`);
-    Logger.info(`Expected storage cost: ${error(ethers.formatEther(cost.totalStorageCost))} ETH`);
     Logger.info(`Expected gas cost: ${error(ethers.formatEther(cost.totalGasCost))} ETH`);
     Logger.info(`Total estimated cost: ${error(ethers.formatEther(cost.totalStorageCost + cost.totalGasCost))} ETH`);
+    Logger.info(`Note: gas is estimated from the current block base fee; the actual cost varies with network conditions.`);
   } catch (e) {
     Logger.log('');
     const length = e.message.length;
@@ -279,14 +300,14 @@ const estimateCost = async (uploader, path, gasIncPct, threadPoolSize) => {
   }
 }
 
-const upload = async (uploader, path, gasIncPct, batchFetchLimit, fileUploadLimit) => {
+const upload = async (uploader, path, gasFee, batchFetchLimit) => {
   try {
-    const infoArr = await uploader.upload(path, gasIncPct, batchFetchLimit, fileUploadLimit);
+    const infoArr = await uploader.upload(path, gasFee, batchFetchLimit);
     Logger.log('');
     let totalCost = 0n, totalChunkCount = 0, totalDataSize = 0;
     for (const file of infoArr) {
       if (file.currentSuccessIndex >= 0) {
-        totalCost += file.totalStorageCost;
+        totalCost += file.totalCost;
         totalChunkCount += file.totalUploadCount;
         totalDataSize += file.totalUploadSize;
         if (file.totalChunkCount > file.currentSuccessIndex + 1) {
@@ -303,21 +324,23 @@ const upload = async (uploader, path, gasIncPct, batchFetchLimit, fileUploadLimi
     Logger.success(`Total data uploaded: ${totalDataSize} KB`);
     Logger.success(`Total cost: ${ethers.formatEther(totalCost)} ETH`);
   } catch (e) {
-    if (e.code === "REPLACEMENT_UNDERPRICED" || (e.error?.message || "").includes("replacement transaction underpriced")) {
+    // stableRetry wraps the original error, so inspect the whole cause chain.
+    const errText = `${e?.code ?? ''} ${e?.cause?.code ?? ''} ${e?.message ?? ''} ${e?.cause?.message ?? ''} ${e?.error?.message ?? ''}`;
+    if (errText.includes("REPLACEMENT_UNDERPRICED") || /replacement fee too low|replacement transaction underpriced/i.test(errText)) {
       // replace error
       Logger.multi([
-        { color: 'error', text: '❌️ Pending transaction detected for this wallet. \n' },
+        { color: 'error', text: '❕️ Pending transaction detected for this wallet. \n' },
         { color: 'error', text: "Your replacement transaction cannot override the queued tx because the gas is too low.\n" },
-        { color: 'error', text: "👉 Please restart the command with " },
-        { color: 'success', text: "'-g <value>' " },
-        { color: 'error', text: "to increase gas (recommended: " },
-        { color: 'success', text: "100 ~ 200" },
-        { color: 'error', text: ").\n" },
-        { color: 'warning', text: 'Note: subsequent transactions will keep using this gas increase until you change it. \n' }
+        { color: 'error', text: "👉 Please restart the command with higher " },
+        { color: 'success', text: "--maxFeePerGas <wei> " },
+        { color: 'error', text: "and/or " },
+        { color: 'success', text: "--maxPriorityFeePerGas <wei>" },
+        { color: 'error', text: " values (a replacement must bid at least ~10% higher than the queued transaction).\n" }
       ]);
     } else {
       const length = e.message.length;
       Logger.error(length > 500 ? (e.message.substring(0, 245) + " ... " + e.message.substring(length - 245, length)) : e.message);
+      if (e.value) Logger.error(`The failure file is ${e.value}`);
       Logger.error(`Execution failed. Please check the error message and try again after making necessary adjustments.`);
     }
   } finally {
