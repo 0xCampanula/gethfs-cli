@@ -61,12 +61,8 @@ const createDirectory = async (key, chainId, rpc) => {
     rpc: providerUrl,
     privateKey: key,
   });
-  try {
-    const address = await fd.deploy();
-    if (address) Logger.success("Deployment successful.");
-  } finally {
-    await safeClose(fd);
-  }
+  const address = await fd.deploy();
+  if (address) Logger.success("Deployment successful.");
 };
 
 const setDefault = async (key, domain, filename, rpc, chainId) => {
@@ -86,12 +82,8 @@ const setDefault = async (key, domain, filename, rpc, chainId) => {
   const fd = await createSDK(providerUrl, key, address);
   if (!fd) return;
 
-  try {
-    const status = await fd.setDefault(filename);
-    if (status) Logger.success("Default file set successfully.");
-  } finally {
-    await safeClose(fd);
-  }
+  const status = await fd.setDefault(filename);
+  if (status) Logger.success("Default file set successfully.");
 };
 
 const remove = async (key, domain, fileName, rpc, chainId) => {
@@ -116,12 +108,8 @@ const remove = async (key, domain, fileName, rpc, chainId) => {
   const fd = await createSDK(providerUrl, key, address);
   if (!fd) return;
 
-  try {
-    const status = await fd.remove(fileName);
-    if (status) Logger.success("File removed successfully.");
-  } finally {
-    await safeClose(fd);
-  }
+  const status = await fd.remove(fileName);
+  if (status) Logger.success("File removed successfully.");
 }
 
 const download = async (domain, fileName, rpc, chainId) => {
@@ -138,7 +126,7 @@ const download = async (domain, fileName, rpc, chainId) => {
   if (!handler) return;
 
   const savePath = path.join(process.cwd(), fileName);
-  fs.existsSync(path.dirname(savePath)) || fs.mkdirSync(path.dirname(savePath));
+  fs.mkdirSync(path.dirname(savePath), { recursive: true });
 
   // replace rpc to eth storage
   const fd = await createSDK(handler.providerUrl, ethers.hexlify(ethers.randomBytes(32)), handler.address, handler.providerUrl);
@@ -146,23 +134,19 @@ const download = async (domain, fileName, rpc, chainId) => {
     return;
   }
 
-  try {
-    await fd.download(fileName, {
-      onProgress: (progress, count, chunk) => {
-        fs.appendFileSync(savePath, chunk);
-        Logger.log(`Download progress: ${progress} / ${count}`);
-      },
-      onFail: (e) => {
-        fs.unlink(savePath, () => {});
-        Logger.error(`Download failed: ${e.message}`);
-      },
-      onFinish: () => {
-        Logger.success(`Download complete: ${savePath}`);
-      }
-    });
-  } finally {
-    await safeClose(fd);
-  }
+  await fd.download(fileName, {
+    onProgress: (progress, count, chunk) => {
+      fs.appendFileSync(savePath, chunk);
+      Logger.log(`Download progress: ${progress} / ${count}`);
+    },
+    onFail: (e) => {
+      fs.unlink(savePath, () => {});
+      Logger.error(`Download failed: ${e.message}`);
+    },
+    onFinish: () => {
+      Logger.success(`Download complete: ${savePath}`);
+    }
+  });
 }
 
 const estimateAndUpload = async (key, domain, path, rpc, chainId, maxFeePerGas, maxPriorityFeePerGas, gasPrice, threadPoolSize, estimateGas, chunkSize, maxChunkCount) => {
@@ -248,13 +232,12 @@ const estimateAndUpload = async (key, domain, path, rpc, chainId, maxFeePerGas, 
   const uploader = await Uploader.create(key, handler.providerUrl, handler.address, chunkSize, maxChunkCount);
   if (!uploader) {
     process.exit(1);
-    return;
   }
 
   if (estimateGas) {
     // get cost
     await estimateCost(uploader, path, gasFee, batchFetchLimit);
-    if (!(await answer("Continue?"))) return await safeClose(uploader);
+    if (!(await answer("Continue?"))) return;
   }
 
   // upload
@@ -343,16 +326,6 @@ const upload = async (uploader, path, gasFee, batchFetchLimit) => {
       if (e.value) Logger.error(`The failure file is ${e.value}`);
       Logger.error(`Execution failed. Please check the error message and try again after making necessary adjustments.`);
     }
-  } finally {
-    await safeClose(uploader);
-  }
-};
-
-const safeClose = async (instance) => {
-  try {
-    if (instance?.close) await instance.close();
-  } catch (err) {
-    Logger.error('Resource close error:', err);
   }
 };
 
