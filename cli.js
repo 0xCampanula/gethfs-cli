@@ -3,7 +3,7 @@ const { program } = require('commander');
 program.version(require('./package.json').version);
 
 const { create, upload, remove, setDefault, download } = require("./src");
-const { MAX_CHUNKS, DEFAULT_MAX_CHUNK_SIZE_KB } = require("calldatauploader-sdk");
+const { MAX_CHUNKS, DEFAULT_MAX_CHUNK_SIZE_KB } = require("gethstorage-sdk");
 
 program
     .option('-p, --privateKey [privateKey]', '私钥')

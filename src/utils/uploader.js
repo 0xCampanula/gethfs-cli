@@ -3,8 +3,8 @@ const {
     MAX_CHUNKS,
     DEFAULT_MAX_CHUNK_SIZE_KB,
     toChunkSizeBytes
-} = require("calldatauploader-sdk");
-const {NodeFile} = require("calldatauploader-sdk/file");
+} = require("gethstorage-sdk");
+const {NodeFile} = require("gethstorage-sdk/file");
 
 const { recursiveFiles, createSDK } = require('./utils');
 const { Logger } = require('./log');

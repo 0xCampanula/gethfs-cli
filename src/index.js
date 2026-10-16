@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const ora = require("ora");
 const readline = require('readline');
-const { FlatDirectory, MAX_CHUNKS, DEFAULT_MAX_CHUNK_SIZE_KB } = require("calldatauploader-sdk");
+const { FlatDirectory, MAX_CHUNKS, DEFAULT_MAX_CHUNK_SIZE_KB } = require("gethstorage-sdk");
 const { ethers } = require("ethers");
 const {
   PROVIDER_URLS,

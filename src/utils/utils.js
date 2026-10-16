@@ -9,7 +9,7 @@ const {
     ResolverAbi,
 } = require('../params');
 const { Logger } = require('./log');
-const { FlatDirectory } = require("calldatauploader-sdk");
+const { FlatDirectory } = require("gethstorage-sdk");
 
 function isPrivateKey(key) {
     try {
