@@ -1,6 +1,6 @@
 {
-  "name": "ethfs-glamsterdam-cli",
-  "version": "4.0.0",
+  "name": "gethfs-cli",
+  "version": "4.0.1",
   "description": "A tool to upload files easily to a filesystem smart contract following ERC-5018.",
   "main": "cli.js",
   "files": [
@@ -25,6 +25,6 @@
     "node": ">=18.0.0"
   },
   "bin": {
-    "ethfs-glamsterdam-cli": "cli.js"
+    "gethfs-cli": "cli.js"
   }
 }

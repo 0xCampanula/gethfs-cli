@@ -186,9 +186,9 @@ const createSDK = async (rpc, privateKey, address, ethStorageRpc) => {
 
             let cliSuggestion;
             if (contractVersion === '1.0.0') {
-                cliSuggestion = 'ethfs-glamsterdam-cli v2.0';
+                cliSuggestion = 'gethfs-cli v2.0';
             } else {
-                cliSuggestion = 'ethfs-glamsterdam-cli v1.x';
+                cliSuggestion = 'gethfs-cli v1.x';
             }
 
             Logger.error(

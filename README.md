@@ -1,24 +1,24 @@
-# ethfs-glamsterdam-cli
+# gethfs-cli
 
 ## Installation
 ### Globally:
 ```bash
-npm install -g ethfs-glamsterdam-cli
+npm install -g gethfs-cli
 ```
 
 Once installed, you can upload file or directory using:
 ```
-ethfs-glamsterdam-cli upload -f <directory|file> -a <address> -p <private-key> -c [chain-id]
+gethfs-cli upload -f <directory|file> -a <address> -p <private-key> -c [chain-id]
 ```
 
 ### Locally:
 ```bash
-npm install ethfs-glamsterdam-cli
+npm install gethfs-cli
 ```
 
 After installation, use npx to run the command:
 ```
-npx ethfs-glamsterdam-cli upload -f <directory|file> -a <address> -p <private-key> -c [chain-id]
+npx gethfs-cli upload -f <directory|file> -a <address> -p <private-key> -c [chain-id]
 ```
 <br/>
 
@@ -79,15 +79,15 @@ Sepolia
 ### Create FlatDirectory Command
 Ethereum is the default network if it's not specified, otherwise, you should use "--chainId" to set it. RPC should also be specified if the network is an unlisted network.
 ```
-ethfs-glamsterdam-cli create -p <private-key> -c [chain-id] -r [rpc]
+gethfs-cli create -p <private-key> -c [chain-id] -r [rpc]
 
 // output: contract address 
 ```
 ##### Example
 ```
-ethfs-glamsterdam-cli create -p 0x32...
-ethfs-glamsterdam-cli create -p 0x32... -c 11155111
-ethfs-glamsterdam-cli create -p 0x32... -r https://rpc.ankr.com/eth
+gethfs-cli create -p 0x32...
+gethfs-cli create -p 0x32... -c 11155111
+gethfs-cli create -p 0x32... -r https://rpc.ankr.com/eth
 ```
 <br/>
 
@@ -97,66 +97,66 @@ Upload files using calldata.<br/>
 If you want to use name instead of FlatDirectory address, the name should be pointed to the FlatDirectory 
 address in advance. Click [here](https://docs.web3url.io/tutorials-on-ethstorage-early-testnet/bind-domain-names-to-your-flatdirectory) for details.
 ```
-ethfs-glamsterdam-cli upload -f <file|directory> -a <address> -p <private-key> -c [chain-id] -r [rpc] --maxFeePerGas [max-fee-per-gas-in-wei] --maxPriorityFeePerGas [max-priority-fee-per-gas-in-wei] --gasPrice [gas-price-in-wei] -e [estimate-gas] -s [thread-pool-size]
+gethfs-cli upload -f <file|directory> -a <address> -p <private-key> -c [chain-id] -r [rpc] --maxFeePerGas [max-fee-per-gas-in-wei] --maxPriorityFeePerGas [max-priority-fee-per-gas-in-wei] --gasPrice [gas-price-in-wei] -e [estimate-gas] -s [thread-pool-size]
 ```
 ##### Example
 ```
 FlatDirectory address
-  ethfs-glamsterdam-cli upload -f index.html -a sep:0x1825...2388 -p 0x32...
-  ethfs-glamsterdam-cli upload -f index.html -a 0x1825...2388 -p 0x32... -c 11155111
-  ethfs-glamsterdam-cli upload -f index.html -a 0x1825...2388 -p 0x32... -r https://rpc.xxx --maxFeePerGas 30000000000 --maxPriorityFeePerGas 1500000000
-  ethfs-glamsterdam-cli upload -f index.html -a 0x1825...2388 -p 0x32... -r https://rpc.xxx -s 12
-  ethfs-glamsterdam-cli upload -f index.html -a 0x1825...2388 -p 0x32... -r https://rpc.xxx -e
+  gethfs-cli upload -f index.html -a sep:0x1825...2388 -p 0x32...
+  gethfs-cli upload -f index.html -a 0x1825...2388 -p 0x32... -c 11155111
+  gethfs-cli upload -f index.html -a 0x1825...2388 -p 0x32... -r https://rpc.xxx --maxFeePerGas 30000000000 --maxPriorityFeePerGas 1500000000
+  gethfs-cli upload -f index.html -a 0x1825...2388 -p 0x32... -r https://rpc.xxx -s 12
+  gethfs-cli upload -f index.html -a 0x1825...2388 -p 0x32... -r https://rpc.xxx -e
 ens
-  ethfs-glamsterdam-cli upload -f dist -a eth:ens.eth -p 0x32... -r https://rpc.ankr.com/eth
+  gethfs-cli upload -f dist -a eth:ens.eth -p 0x32... -r https://rpc.ankr.com/eth
 ```
 <br/>
 
 
 ### Set FlatDirectory Default Entrance
 ```
-ethfs-glamsterdam-cli default -a <address|domain> -f <file-name> -p <private-key> -c [chain-id] -r [rpc]
+gethfs-cli default -a <address|domain> -f <file-name> -p <private-key> -c [chain-id] -r [rpc]
 ```
 ##### Example
 ```
 FlatDirectory address
-  ethfs-glamsterdam-cli default -a sep:0x1825...2388 -f index.html -p 0x32...
-  ethfs-glamsterdam-cli default -a 0x1825...2388 -f index.html -p 0x32... -c 11155111
-  ethfs-glamsterdam-cli default -a 0x1825...2388 -f index.html -p 0x32... -r https://rpc.xxx
+  gethfs-cli default -a sep:0x1825...2388 -f index.html -p 0x32...
+  gethfs-cli default -a 0x1825...2388 -f index.html -p 0x32... -c 11155111
+  gethfs-cli default -a 0x1825...2388 -f index.html -p 0x32... -r https://rpc.xxx
 ens
-  ethfs-glamsterdam-cli default -a eth:ens.eth -f index.html -p 0x32... -r https://rpc.ankr.com/eth
+  gethfs-cli default -a eth:ens.eth -f index.html -p 0x32... -r https://rpc.ankr.com/eth
 ```
 <br/>
 
 
 ### Download File
 ```
-ethfs-glamsterdam-cli download -a <address|domain> -f <fileName> -c [chain-id] -r [rpc]
+gethfs-cli download -a <address|domain> -f <fileName> -c [chain-id] -r [rpc]
 ```
 ##### Example
 ```
 FlatDirectory address
-  ethfs-glamsterdam-cli download -a sep:0x1825...2388 -f index.html
-  ethfs-glamsterdam-cli download -a 0x1825...2388 -f index.html -c 11155111
-  ethfs-glamsterdam-cli download -a 0x1825...2388 -f index.html -r https://rpc.xxx
+  gethfs-cli download -a sep:0x1825...2388 -f index.html
+  gethfs-cli download -a 0x1825...2388 -f index.html -c 11155111
+  gethfs-cli download -a 0x1825...2388 -f index.html -r https://rpc.xxx
 ens
-  ethfs-glamsterdam-cli download -a eth:ens.eth -f home.vue
+  gethfs-cli download -a eth:ens.eth -f home.vue
 ```
 <br/>
 
 
 ### Remove File
 ```
-ethfs-glamsterdam-cli remove -a <address|domain> -f <file-name> -p <private-key> -r [rpc] -c [chain-id]
+gethfs-cli remove -a <address|domain> -f <file-name> -p <private-key> -r [rpc] -c [chain-id]
 ```
 ##### Example
 ```
 FlatDirectory address
-  ethfs-glamsterdam-cli remove -a sep:0x1825...2388 -f index.html -p 0x32...
-  ethfs-glamsterdam-cli remove -a 0x1825...2388 -f index.html -p 0x32... -c 11155111
-  ethfs-glamsterdam-cli remove -a 0x1825...2388 -f index.html -p 0x32... -r https://rpc.xxx
+  gethfs-cli remove -a sep:0x1825...2388 -f index.html -p 0x32...
+  gethfs-cli remove -a 0x1825...2388 -f index.html -p 0x32... -c 11155111
+  gethfs-cli remove -a 0x1825...2388 -f index.html -p 0x32... -r https://rpc.xxx
 ens
-  ethfs-glamsterdam-cli remove -a eth:ens.eth -f home.vue -p 0x32...
+  gethfs-cli remove -a eth:ens.eth -f home.vue -p 0x32...
 ```
 <br/>
 
