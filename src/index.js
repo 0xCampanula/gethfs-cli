@@ -125,7 +125,15 @@ const download = async (domain, fileName, rpc, chainId) => {
   const handler = await getHandler(domain, rpc, chainId, false);
   if (!handler) return;
 
-  const savePath = path.join(process.cwd(), fileName);
+  // Resolve within cwd: block path traversal (fileName comes from an on-chain key).
+  const cwd = process.cwd();
+  const savePath = path.resolve(cwd, fileName);
+  if (savePath !== cwd && !savePath.startsWith(cwd + path.sep)) {
+    Logger.error("Invalid file name: path escapes the current directory.");
+    return;
+  }
+  // appendFileSync is used per chunk; an existing file would be corrupted by appending.
+  if (fs.existsSync(savePath)) fs.unlinkSync(savePath);
   fs.mkdirSync(path.dirname(savePath), { recursive: true });
 
   // replace rpc to eth storage
