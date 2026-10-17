@@ -1,5 +1,9 @@
 # gethfs-cli 更新日志
 
+## 4.0.5
+
+- 升级 gethstorage-sdk 至 5.0.5，修复已上传分块数较多时（约200块以上）重启上传报错的bug
+
 ## 4.0.4
 
 - 升级 gethstorage-sdk 至 5.0.3，修复分块 0xef 开头被拒绝交易的 bug
