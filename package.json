@@ -1,6 +1,6 @@
 {
   "name": "gethfs-cli",
-  "version": "4.0.2",
+  "version": "4.0.3",
   "description": "A tool to upload files easily to a filesystem smart contract following ERC-5018.",
   "main": "cli.js",
   "files": [

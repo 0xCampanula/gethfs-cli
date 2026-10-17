@@ -52,7 +52,6 @@ npx gethfs-cli upload -f <directory|file> -a <address> -p <private-key> -c [chai
 | BNB Smart Chain Testnet    | bnbt / 97                     | 
 | Avalanche C-Chain          | avax / 43114                  | 
 | Avalanche Fuji Testnet     | fuji / 43113                  | 
-| QuarkChain L2 Testnet      | qkc-l2-t / 110011             |
 | QuarkChain L2 Mainnet      | qkc-l2 / 100011               |
  
 

@@ -7,7 +7,6 @@ const { ethers } = require("ethers");
 const {
   PROVIDER_URLS,
   ETHEREUM_CHAIN_ID,
-  QUARKCHAIN_L2_DELTA_CHAIN_ID,
   QUARKCHAIN_L2_MAINNET_CHAIN_ID,
   DEFAULT_THREAD_POOL_SIZE_LOW,
   DEFAULT_THREAD_POOL_SIZE_HIGH
@@ -223,7 +222,7 @@ const estimateAndUpload = async (key, domain, path, rpc, chainId, maxFeePerGas, 
   let batchFetchLimit;
   if (threadPoolSize) {
     batchFetchLimit = Number(threadPoolSize);
-  } else if (handler.chainId === QUARKCHAIN_L2_DELTA_CHAIN_ID || handler.chainId === QUARKCHAIN_L2_MAINNET_CHAIN_ID) {
+  } else if (handler.chainId === QUARKCHAIN_L2_MAINNET_CHAIN_ID) {
     batchFetchLimit = DEFAULT_THREAD_POOL_SIZE_HIGH;
   } else {
     batchFetchLimit = DEFAULT_THREAD_POOL_SIZE_LOW;

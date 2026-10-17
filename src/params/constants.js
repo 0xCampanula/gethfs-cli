@@ -7,7 +7,6 @@ const SHORT_NAME_BINANCE = "bnb";
 const SHORT_NAME_BINANCE_TEST = "bnbt";
 const SHORT_NAME_AVALANCHE = "avax";
 const SHORT_NAME_AVALANCHE_TEST = "fuji";
-const SHORT_NAME_QUARKCHAIN_L2_DELTA = "qkc-l2-t";
 const SHORT_NAME_QUARKCHAIN_L2_MAINNET = "qkc-l2";
 
 // chain id
@@ -20,7 +19,6 @@ const BINANCE_TEST_CHAIN_ID = 97;
 const AVALANCHE_CHAIN_ID = 43114;
 const AVALANCHE_TEST_CHAIN_ID = 43113;
 // qkc l2
-const QUARKCHAIN_L2_DELTA_CHAIN_ID = 110011;
 const QUARKCHAIN_L2_MAINNET_CHAIN_ID = 100011;
 
 const NETWORK_MAPPING = {
@@ -32,19 +30,18 @@ const NETWORK_MAPPING = {
     [SHORT_NAME_BINANCE_TEST]: BINANCE_TEST_CHAIN_ID,
     [SHORT_NAME_AVALANCHE]: AVALANCHE_CHAIN_ID,
     [SHORT_NAME_AVALANCHE_TEST]: AVALANCHE_TEST_CHAIN_ID,
-    [SHORT_NAME_QUARKCHAIN_L2_DELTA]: QUARKCHAIN_L2_DELTA_CHAIN_ID,
     [SHORT_NAME_QUARKCHAIN_L2_MAINNET]: QUARKCHAIN_L2_MAINNET_CHAIN_ID,
 }
 
 const PROVIDER_URLS = {
-    [SEPOLIA_CHAIN_ID]: 'http://65.108.230.142:8545/',
-    [OPTIMISTIC_CHAIN_ID]: 'https://mainnet.optimism.io',
+    [ETHEREUM_CHAIN_ID]: 'https://eth.api.pocket.network',
+    [SEPOLIA_CHAIN_ID]: 'https://sepolia.rpc.thirdweb.com',
+    [OPTIMISTIC_CHAIN_ID]: 'https://op.api.pocket.network',
     [ARBITRUM_CHAIN_ID]: 'https://arb1.arbitrum.io/rpc',
-    [BINANCE_CHAIN_ID]: 'https://bsc-dataseed2.binance.org',
-    [BINANCE_TEST_CHAIN_ID]: 'https://data-seed-prebsc-1-s1.binance.org:8545',
+    [BINANCE_CHAIN_ID]: 'https://bsc.publicnode.com',
+    [BINANCE_TEST_CHAIN_ID]: 'https://bsc-testnet.publicnode.com',
     [AVALANCHE_CHAIN_ID]: 'https://api.avax.network/ext/bc/C/rpc',
-    [AVALANCHE_TEST_CHAIN_ID]: 'https://avalanchetestapi.terminet.io/ext/bc/C/rpc',
-    [QUARKCHAIN_L2_DELTA_CHAIN_ID]: 'https://rpc.delta.testnet.l2.quarkchain.io:8545',
+    [AVALANCHE_TEST_CHAIN_ID]: 'https://api.avax-test.network/ext/bc/C/rpc',
     [QUARKCHAIN_L2_MAINNET_CHAIN_ID]: 'https://rpc.mainnet.l2.quarkchain.io:8545',
 }
 
@@ -62,7 +59,6 @@ module.exports = {
     NS_ADDRESS,
 
     ETHEREUM_CHAIN_ID,
-    QUARKCHAIN_L2_DELTA_CHAIN_ID,
     QUARKCHAIN_L2_MAINNET_CHAIN_ID,
 
     DEFAULT_THREAD_POOL_SIZE_LOW,
