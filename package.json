@@ -17,7 +17,7 @@
     "colors-cli": "^1.0.33",
     "commander": "^11.1.0",
     "ethers": "^6.17.0",
-    "gethstorage-sdk": "^5.0.3",
+    "gethstorage-sdk": "^5.0.4",
     "ora": "^5.4.1",
     "rxjs": "^7.8.1"
   },
